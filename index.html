@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine's Day 💝</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffb3d9 0%, #ff85c0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 3rem;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(255, 105, 180, 0.4);
+            max-width: 500px;
+        }
+
+        .heart-image {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .heart-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 5px solid #ff1493;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        .heart-emoji {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            font-size: 60px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.05); }
+            50% { transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        h1 {
+            color: #ff1493;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            font-weight: bold;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            min-height: 60px;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #yesBtn {
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff1493 100%);
+            color: white;
+        }
+
+        #yesBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4);
+        }
+
+        #noBtn {
+            background: linear-gradient(135deg, #ddd 0%, #bbb 100%);
+            color: #666;
+        }
+
+        #noBtn.moving {
+            position: fixed;
+            transition: all 0.1s ease;
+        }
+
+        .success-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .success-screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .yay-text {
+            font-size: 4rem;
+            color: #ff1493;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            animation: bounce 0.6s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .yay-gif {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="questionScreen">
+            <div class="heart-image">
+                <img src="Mariana.jpeg" alt="Romantic roses">
+                <div class="heart-emoji">💝</div>
+            </div>
+            <h1>Mariana, will you be my valentine?</h1>
+            <div class="button-container">
+                <button id="yesBtn">Yes! 💕</button>
+                <button id="noBtn">No</button>
+            </div>
+        </div>
+
+        <div id="successScreen" class="success-screen">
+            <div class="yay-text">YAY! 🎉</div>
+            <img class="yay-gif" src="https://media.giphy.com/media/artj92V8o75VPL7AeQ/giphy.gif" alt="Celebration">
+        </div>
+    </div>
+
+    <script>
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const questionScreen = document.getElementById('questionScreen');
+        const successScreen = document.getElementById('successScreen');
+        let isMoving = false;
+
+        // Move "No" button away from mouse
+        document.addEventListener('mousemove', (e) => {
+            if (questionScreen.style.display === 'none') return;
+            
+            const noRect = noBtn.getBoundingClientRect();
+            const noCenterX = noRect.left + noRect.width / 2;
+            const noCenterY = noRect.top + noRect.height / 2;
+            
+            const distance = Math.sqrt(
+                Math.pow(e.clientX - noCenterX, 2) + 
+                Math.pow(e.clientY - noCenterY, 2)
+            );
+            
+            // If mouse is within 100px of the button, move it
+            if (distance < 100) {
+                if (!isMoving) {
+                    // Convert to fixed position on first move
+                    noBtn.classList.add('moving');
+                    noBtn.style.left = noRect.left + 'px';
+                    noBtn.style.top = noRect.top + 'px';
+                    isMoving = true;
+                }
+
+                const angle = Math.atan2(noCenterY - e.clientY, noCenterX - e.clientX);
+                const moveDistance = 150;
+                
+                let newX = parseFloat(noBtn.style.left) + Math.cos(angle) * moveDistance;
+                let newY = parseFloat(noBtn.style.top) + Math.sin(angle) * moveDistance;
+                
+                // Keep button within viewport
+                const maxX = window.innerWidth - noRect.width - 10;
+                const maxY = window.innerHeight - noRect.height - 10;
+                
+                newX = Math.max(10, Math.min(newX, maxX));
+                newY = Math.max(10, Math.min(newY, maxY));
+                
+                noBtn.style.left = newX + 'px';
+                noBtn.style.top = newY + 'px';
+            }
+        });
+
+        // Handle "Yes" button click
+        yesBtn.addEventListener('click', () => {
+            questionScreen.style.display = 'none';
+            successScreen.classList.add('active');
+        });
+
+        // Prevent "No" button from being clicked
+        noBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
