@@ -19,21 +19,23 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            padding: 1rem;
         }
 
         .container {
             text-align: center;
             background: white;
-            padding: 3rem;
+            padding: 2rem;
             border-radius: 30px;
             box-shadow: 0 20px 60px rgba(255, 105, 180, 0.4);
             max-width: 500px;
+            width: 100%;
         }
 
         .heart-image {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 2rem;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 1.5rem;
             position: relative;
         }
 
@@ -50,7 +52,7 @@
             position: absolute;
             bottom: -10px;
             right: -10px;
-            font-size: 60px;
+            font-size: 50px;
             animation: pulse 1s ease-in-out infinite;
         }
 
@@ -67,9 +69,10 @@
 
         h1 {
             color: #ff1493;
-            font-size: 2rem;
-            margin-bottom: 2rem;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
             font-weight: bold;
+            line-height: 1.4;
         }
 
         .button-container {
@@ -78,17 +81,19 @@
             justify-content: center;
             margin-top: 2rem;
             min-height: 60px;
+            flex-wrap: wrap;
         }
 
         button {
             padding: 15px 40px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            touch-action: none;
         }
 
         #yesBtn {
@@ -101,6 +106,10 @@
             box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4);
         }
 
+        #yesBtn:active {
+            transform: scale(1.05);
+        }
+
         #noBtn {
             background: linear-gradient(135deg, #ddd 0%, #bbb 100%);
             color: #666;
@@ -109,6 +118,7 @@
         #noBtn.moving {
             position: fixed;
             transition: all 0.1s ease;
+            z-index: 1000;
         }
 
         .success-screen {
@@ -127,7 +137,7 @@
         }
 
         .yay-text {
-            font-size: 4rem;
+            font-size: 3rem;
             color: #ff1493;
             font-weight: bold;
             margin-bottom: 2rem;
@@ -140,10 +150,51 @@
         }
 
         .yay-gif {
-            width: 300px;
-            height: 300px;
+            width: 100%;
+            max-width: 300px;
+            height: auto;
             margin: 0 auto;
             border-radius: 20px;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .heart-image {
+                width: 150px;
+                height: 150px;
+            }
+
+            .heart-emoji {
+                font-size: 40px;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            button {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+
+            .yay-text {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 1.1rem;
+            }
+
+            button {
+                padding: 10px 25px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -174,8 +225,21 @@
         const successScreen = document.getElementById('successScreen');
         let isMoving = false;
 
-        // Move "No" button away from mouse
-        document.addEventListener('mousemove', (e) => {
+        function getPointerPosition(e) {
+            // Support both mouse and touch events
+            if (e.touches && e.touches.length > 0) {
+                return {
+                    x: e.touches[0].clientX,
+                    y: e.touches[0].clientY
+                };
+            }
+            return {
+                x: e.clientX,
+                y: e.clientY
+            };
+        }
+
+        function moveNoButton(pointerX, pointerY) {
             if (questionScreen.style.display === 'none') return;
             
             const noRect = noBtn.getBoundingClientRect();
@@ -183,11 +247,11 @@
             const noCenterY = noRect.top + noRect.height / 2;
             
             const distance = Math.sqrt(
-                Math.pow(e.clientX - noCenterX, 2) + 
-                Math.pow(e.clientY - noCenterY, 2)
+                Math.pow(pointerX - noCenterX, 2) + 
+                Math.pow(pointerY - noCenterY, 2)
             );
             
-            // If mouse is within 100px of the button, move it
+            // If pointer is within 100px of the button, move it
             if (distance < 100) {
                 if (!isMoving) {
                     // Convert to fixed position on first move
@@ -197,7 +261,7 @@
                     isMoving = true;
                 }
 
-                const angle = Math.atan2(noCenterY - e.clientY, noCenterX - e.clientX);
+                const angle = Math.atan2(noCenterY - pointerY, noCenterX - pointerX);
                 const moveDistance = 150;
                 
                 let newX = parseFloat(noBtn.style.left) + Math.cos(angle) * moveDistance;
@@ -213,7 +277,25 @@
                 noBtn.style.left = newX + 'px';
                 noBtn.style.top = newY + 'px';
             }
+        }
+
+        // Mouse support
+        document.addEventListener('mousemove', (e) => {
+            const pos = getPointerPosition(e);
+            moveNoButton(pos.x, pos.y);
         });
+
+        // Touch support for mobile
+        document.addEventListener('touchmove', (e) => {
+            const pos = getPointerPosition(e);
+            moveNoButton(pos.x, pos.y);
+        }, { passive: true });
+
+        // Also check on touch start
+        document.addEventListener('touchstart', (e) => {
+            const pos = getPointerPosition(e);
+            moveNoButton(pos.x, pos.y);
+        }, { passive: true });
 
         // Handle "Yes" button click
         yesBtn.addEventListener('click', () => {
@@ -221,8 +303,19 @@
             successScreen.classList.add('active');
         });
 
-        // Prevent "No" button from being clicked
+        // Handle "Yes" button touch
+        yesBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            questionScreen.style.display = 'none';
+            successScreen.classList.add('active');
+        });
+
+        // Prevent "No" button from being clicked/tapped
         noBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+        });
+
+        noBtn.addEventListener('touchend', (e) => {
             e.preventDefault();
         });
     </script>
